@@ -1,0 +1,19 @@
+{
+  "name": "校园导航",
+  "short_name": "校园导航",
+  "description": "校园地图、避障路径规划与楼内导航",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#2563eb",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
