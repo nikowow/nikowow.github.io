@@ -144,6 +144,15 @@ aside {
   background: #f59e0b; color: #fff; font-weight: 700; cursor: pointer; font-size: 13px;
 }
 .mini:hover { filter: brightness(.96); }
+/* 分享路线按钮 */
+.share-btn {
+  margin-top: 8px; width: 100%; padding: 10px; border: 1px dashed #2563eb; border-radius: 9px;
+  background: #eff6ff; color: #1d4ed8; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: background .12s, transform .12s;
+}
+.share-btn:hover { background: #dbeafe; transform: translateY(-1px); }
+[data-theme="dark"] .share-btn { background: #16283f; border-color: #3b82f6; color: #93c5fd; }
+[data-theme="dark"] .share-btn:hover { background: #1d3a5f; }
 .legend { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #475569; }
 .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
 .dot.green { background: #16a34a; }
@@ -661,6 +670,7 @@ main { animation: appRise .5s ease; }
           <button id="classBtn">导航到我的班级</button>
           <button id="dormBtn">导航到我的宿舍</button>
         </div>
+        <button id="shareBtn" class="share-btn">分享当前路线</button>
         <div id="info" class="info"></div>
         <div id="classBox"></div>
         <div id="dormBox"></div>
@@ -1592,6 +1602,45 @@ function plan() {
 // 拖拽自定义点后直接按坐标规划
 function planByCoords() { routeCore(startPoi, endPoi); }
 
+// ---------- 路线分享：URL 参数带入 / 生成复制链接 ----------
+function applyRouteFromUrl() {
+  const q = new URLSearchParams(location.search);
+  const from = q.get('from'), to = q.get('to');
+  if (!from && !to) return;
+  const ss = document.getElementById('startSel'), es = document.getElementById('endSel');
+  let ok = false;
+  if (from && POIS.some(p => p.name === from)) { ss.value = from; ok = true; }
+  if (to && POIS.some(p => p.name === to)) { es.value = to; ok = true; }
+  if (ok) {
+    plan();
+    info(`已按分享链接载入路线：${ss.value} → ${es.value}，可自行调整起终点。`);
+  } else {
+    info('分享链接中的地点不存在，已忽略，请手动选择。');
+  }
+}
+function shareRoute() {
+  const s = document.getElementById('startSel').value;
+  const e = document.getElementById('endSel').value;
+  const url = `${location.origin}${location.pathname}?from=${encodeURIComponent(s)}&to=${encodeURIComponent(e)}`;
+  const btn = document.getElementById('shareBtn');
+  const done = () => {
+    const old = btn.textContent;
+    btn.textContent = '✓ 链接已复制，发给同学吧';
+    info(`分享链接（已复制）：${url}`);
+    setTimeout(() => { btn.textContent = old; }, 2500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done));
+  } else fallbackCopy(url, done);
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta); done();
+}
+
 // 导航到我的班级 / 宿舍（连贯动线）
 function planToClass() {
   if (!currentUser) return;
@@ -1673,6 +1722,7 @@ function showApp() {
   startPoi = POIS.find(p => p.name === '校门');
   endPoi = POIS.find(p => p.name === '教学楼A');
   drawMap();
+  applyRouteFromUrl();
 }
 
 function doLogin() {
@@ -2225,6 +2275,7 @@ function init() {
     document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀️ 日间' : '🌙 夜间';
   });
   document.getElementById('planBtn').addEventListener('click', plan);
+  document.getElementById('shareBtn').addEventListener('click', shareRoute);
   document.getElementById('classBtn').addEventListener('click', planToClass);
   document.getElementById('dormBtn').addEventListener('click', planToDorm);
   // 视角控制
