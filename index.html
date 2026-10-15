@@ -70,6 +70,39 @@ body {
 .err { color: #dc2626; font-size: 13px; min-height: 18px; margin-top: 8px; }
 .hint { margin-top: 14px; font-size: 12px; color: #64748b; background: #f8fafc; padding: 8px 10px; border-radius: 8px; }
 
+/* 想提升成绩：入口按钮 */
+.boost-btn {
+  width: 100%; margin-top: 12px; padding: 11px; border: none; border-radius: 10px;
+  background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 8px 20px rgba(124, 58, 237, .3);
+  transition: transform .12s, box-shadow .12s, filter .12s;
+}
+.boost-btn:hover { filter: brightness(1.07); transform: translateY(-1px); box-shadow: 0 10px 24px rgba(124, 58, 237, .4); }
+.boost-btn:active { transform: translateY(0); }
+/* 跳转确认弹窗 */
+.boost-panel {
+  width: 340px; max-width: 92vw; text-align: center; padding: 28px 24px 22px;
+  background: var(--panel); border-radius: 16px;
+}
+.boost-icon {
+  width: 58px; height: 58px; margin: 0 auto 12px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  background: linear-gradient(135deg, #7c3aed, #a855f7); box-shadow: 0 8px 20px rgba(124, 58, 237, .35);
+}
+.boost-panel h2 { margin: 0 0 8px; font-size: 19px; color: var(--text); }
+.boost-panel p { margin: 0 0 20px; font-size: 13px; color: var(--muted); line-height: 1.7; }
+.boost-actions { display: flex; gap: 10px; }
+.boost-actions button {
+  flex: 1; padding: 11px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; border: none;
+}
+.boost-cancel { background: var(--btn-bg); color: var(--btn-text); }
+.boost-cancel:hover { filter: brightness(.97); }
+.boost-confirm { background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; }
+.boost-confirm:hover { filter: brightness(1.07); }
+[data-theme="dark"] .boost-btn, [data-theme="dark"] .boost-confirm { filter: brightness(1.15); }
+[data-theme="dark"] .boost-btn:hover, [data-theme="dark"] .boost-confirm:hover { filter: brightness(1.28); }
+
 /* 主应用 */
 #app { display: flex; flex-direction: column; }
 header {
@@ -591,6 +624,20 @@ main { animation: appRise .5s ease; }
       <button id="loginBtn">登 录</button>
       <div id="loginErr" class="err"></div>
       <div class="hint">测试账号：学号 <b>111</b> / <b>222</b>，密码均为 <b>123</b></div>
+      <button id="boostBtn" class="boost-btn">✨ 想提升成绩？</button>
+    </div>
+  </div>
+
+  <!-- AI 学习助手跳转确认 -->
+  <div id="boostModal" class="overlay hidden">
+    <div class="panel boost-panel">
+      <div class="boost-icon">✨</div>
+      <h2>跳转至 AI 学习助手</h2>
+      <p>即将离开校园导航，前往 AI 学习助手，获取个性化辅导，帮助提升成绩。</p>
+      <div class="boost-actions">
+        <button id="boostCancel" class="boost-cancel">取消</button>
+        <button id="boostConfirm" class="boost-confirm">确认跳转</button>
+      </div>
     </div>
   </div>
 
@@ -2157,6 +2204,20 @@ function init() {
   document.getElementById('loginBtn').addEventListener('click', doLogin);
   document.getElementById('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
   document.getElementById('sid').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pwd').focus(); });
+  // 想提升成绩：确认后跳转 AI 学习助手
+  const BOOST_URL = 'https://a506a4929ec210caf.app.workbuddy.host/';
+  document.getElementById('boostBtn').addEventListener('click', () => {
+    document.getElementById('boostModal').classList.remove('hidden');
+  });
+  document.getElementById('boostCancel').addEventListener('click', () => {
+    document.getElementById('boostModal').classList.add('hidden');
+  });
+  document.getElementById('boostModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+  });
+  document.getElementById('boostConfirm').addEventListener('click', () => {
+    window.location.href = BOOST_URL;
+  });
   document.getElementById('logoutBtn').addEventListener('click', doLogout);
   document.getElementById('themeBtn').addEventListener('click', () => {
     theme = theme === 'light' ? 'dark' : 'light';
